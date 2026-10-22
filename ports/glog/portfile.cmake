@@ -8,7 +8,10 @@ vcpkg_from_github(
       fix_glog_CMAKE_MODULE_PATH.patch
       glog_disable_debug_postfix.patch
       fix_crosscompile_symbolize.patch
+      devendor-dirent.patch
 )
+
+file(REMOVE "${SOURCE_PATH}/src/windows/dirent.h")
 
 vcpkg_check_features(
     OUT_FEATURE_OPTIONS FEATURE_OPTIONS
@@ -63,6 +66,13 @@ else()
     endforeach()
 endif()
 vcpkg_fixup_pkgconfig()
+
+foreach(header IN ITEMS flags.h log_severity.h logging.h raw_logging.h vlog_is_on.h)
+    vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/include/${PORT}/${header}"
+        "#if defined(GLOG_USE_GLOG_EXPORT)" "#if 1")
+endforeach()
+vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/include/${PORT}/flags.h"
+    "#if defined(GLOG_USE_GFLAGS)" "#if 1")
 
 if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
     vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/include/${PORT}/export.h" "#ifdef GLOG_STATIC_DEFINE" "#if 1")
